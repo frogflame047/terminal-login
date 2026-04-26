@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <meta property="og:title" content="ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM">
+    <meta property="og:description" content="WARNING: SECURITY LOCKOUT IMMINENT. Access requires authorization.">
+    <meta property="og:color" content="#00ff00">
+    
+    <title>Terminal Access</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            /* Change this to match your faction color if needed! */
+            --terminal-color: #1ae23b; 
+            --bg-color: #0d110d;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--terminal-color);
+            font-family: 'VT323', 'Fixedsys', monospace; /* Classic terminal feel */
+            height: 100%;
+            overflow: hidden;
+            text-transform: uppercase;
+        }
+
+        /* CRT Scanline Effect */
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #terminal-container {
+            padding: 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 5px var(--terminal-color);
+            font-size: 1.2rem;
+        }
+
+        .header { margin-bottom: 2rem; }
+        .attempts { margin-bottom: 1rem; }
+        
+        #game-area {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .column {
+            flex: 1;
+            word-break: break-all;
+            line-height: 1.5;
+        }
+
+        .word {
+            cursor: pointer;
+            transition: background-color 0.1s, color 0.1s;
+        }
+
+        .word:hover {
+            background-color: var(--terminal-color);
+            color: var(--bg-color);
+        }
+
+        #output-log {
+            margin-top: 2rem;
+            border-top: 1px solid var(--terminal-color);
+            padding-top: 1rem;
+            min-height: 100px;
+        }
+
+        .hidden { display: none; }
+        
+        /* Glitch effect for lockout */
+        .lockout { animation: glitch 0.2s linear infinite; color: red; text-shadow: 0 0 5px red;}
+        @keyframes glitch {
+            0% { transform: translate(0) }
+            20% { transform: translate(-2px, 2px) }
+            40% { transform: translate(-2px, -2px) }
+            60% { transform: translate(2px, 2px) }
+            80% { transform: translate(2px, -2px) }
+            100% { transform: translate(0) }
+        }
+    </style>
+</head>
+<body>
+
+<div id="terminal-container">
+    <div class="header">
+        ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM<br>
+        COPYRIGHT 2075-2077 ROBCO INDUSTRIES<br>
+        -Server 1-<br><br>
+        Enter Password Now
+    </div>
+
+    <div class="attempts" id="attempts-display">
+        4 ATTEMPT(S) LEFT: &#9608; &#9608; &#9608; &#9608;
+    </div>
+
+    <div id="game-area">
+        <div class="column" id="col1"></div>
+        <div class="column" id="col2"></div>
+    </div>
+
+    <div id="output-log">
+        > <span id="current-output">AWAITING INPUT...</span>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const GOOGLE_DOC_URL = "https://docs.google.com/document/d/YOUR_DOC_ID_HERE/edit"; 
+    
+    // Words must all be the exact same length (7 characters here)
+    const words = [
+        "FALLOUT", "BUNKER", "SURVIVE", "NUCLEAR", 
+        "WEAPONS", "RADIUM", "MUTANTS", "FACTION", 
+        "COMBAT", "HEALING", "TENSION", "OUTPOST"
+    ];
+    // ---------------------
+
+    let attempts = 4;
+    const password = words[Math.floor(Math.random() * words.length)];
+    const gibberishChars = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+
+    function generateGibberish(length) {
+        let result = "";
+        for (let i = 0; i < length; i++) {
+            result += gibberishChars.charAt(Math.floor(Math.random() * gibberishChars.length));
+        }
+        return result;
+    }
+
+    function populateColumns() {
+        const col1 = document.getElementById('col1');
+        const col2 = document.getElementById('col2');
+        let wordIndex = 0;
+
+        for (let i = 0; i < 30; i++) {
+            let line = "0x" + Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0') + " ";
+            
+            // Randomly decide to place a word or just gibberish
+            if (wordIndex < words.length && Math.random() > 0.6) {
+                const word = words[wordIndex];
+                const gib1 = generateGibberish(Math.floor(Math.random() * 5) + 1);
+                const gib2 = generateGibberish(16 - gib1.length - word.length);
+                
+                line += `${gib1}<span class="word" onclick="handleGuess('${word}')">${word}</span>${gib2}`;
+                wordIndex++;
+            } else {
+                line += generateGibberish(16);
+            }
+            
+            line += "<br>";
+            if (i < 15) col1.innerHTML += line;
+            else col2.innerHTML += line;
+        }
+    }
+
+    function getLikeness(guess, target) {
+        let matches = 0;
+        for (let i = 0; i < guess.length; i++) {
+            if (guess[i] === target[i]) matches++;
+        }
+        return matches;
+    }
+
+    function handleGuess(guess) {
+        const output = document.getElementById('current-output');
+        const attemptsDisplay = document.getElementById('attempts-display');
+
+        if (guess === password) {
+            output.innerHTML = `EXACT MATCH!<br>PLEASE WAIT...<br>ACCESS GRANTED.`;
+            document.body.style.color = "var(--terminal-color)";
+            setTimeout(() => {
+                window.location.href = GOOGLE_DOC_URL;
+            }, 1500);
+            return;
+        }
+
+        attempts--;
+        const likeness = getLikeness(guess, password);
+        
+        output.innerHTML = `> ${guess}<br>> Entry denied.<br>> Likeness=${likeness}`;
+        
+        let blocks = "";
+        for(let i=0; i<attempts; i++) blocks += "&#9608; ";
+        attemptsDisplay.innerHTML = `${attempts} ATTEMPT(S) LEFT: ${blocks}`;
+
+        if (attempts <= 0) {
+            document.getElementById('game-area').innerHTML = "<div class='lockout' style='font-size: 3rem; text-align:center; width:100%; margin-top: 50px;'>TERMINAL LOCKED<br>PLEASE CONTACT ADMINISTRATOR</div>";
+            attemptsDisplay.innerHTML = "0 ATTEMPTS LEFT. SYSTEM LOCKED.";
+            output.innerHTML = "SECURITY LOCKOUT INITIATED.";
+        }
+    }
+
+    // Initialize game
+    populateColumns();
+</script>
+
+</body>
+</html>
