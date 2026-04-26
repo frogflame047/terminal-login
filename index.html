@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:title" content="ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM">
+    <meta property="og:description" content="WARNING: VERY HARD SECURITY LOCKOUT IMMINENT.">
+    <meta property="og:color" content="#dc143c">
+    
+    <title>Very Hard Terminal Access</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
+
+        :root {
+            --terminal-color: #1ae23b; 
+            --bg-color: #080a08;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--terminal-color);
+            font-family: 'VT323', 'Fixedsys', monospace;
+            height: 100%;
+            overflow: hidden;
+            text-transform: uppercase;
+            user-select: none;
+        }
+
+        body::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 10;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        #terminal-container {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 5px var(--terminal-color);
+            font-size: 1.3rem;
+        }
+
+        #theme-selector {
+            position: absolute;
+            top: 1rem;
+            right: 2rem;
+            z-index: 11;
+            display: flex;
+            gap: 10px;
+        }
+        
+        .theme-btn {
+            background: none;
+            border: 1px solid var(--terminal-color);
+            color: var(--terminal-color);
+            font-family: inherit;
+            cursor: pointer;
+            padding: 2px 5px;
+            text-transform: uppercase;
+        }
+        .theme-btn:hover { background: var(--terminal-color); color: var(--bg-color); }
+
+        .header { margin-bottom: 1.5rem; }
+        .attempts { margin-bottom: 1rem; letter-spacing: 2px; }
+        
+        #game-area { display: flex; gap: 3rem; }
+
+        .column {
+            flex: 1;
+            line-height: 1.3;
+            letter-spacing: 2px;
+            white-space: pre;
+        }
+
+        /* All interactive elements share the hover effect now */
+        .word, .bracket, .char { cursor: pointer; transition: 0s; }
+        .word:hover:not(.dud), .bracket:hover, .char:hover { background-color: var(--terminal-color); color: var(--bg-color); }
+        .dud { opacity: 0.5; pointer-events: none; }
+
+        #output-log {
+            margin-top: 2rem;
+            border-top: 1px solid var(--terminal-color);
+            padding-top: 1rem;
+            height: 120px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .log-entry { margin: 0; }
+        
+        #lockout-screen {
+            display: none;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color);
+            z-index: 20;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            text-align: center;
+            font-size: 2rem;
+            text-shadow: 0 0 10px var(--terminal-color);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+
+<audio id="bg-music" src="music.mp3" loop></audio>
+
+<div id="theme-selector">
+    <button class="theme-btn" onclick="setTheme('#1ae23b'); sfxClick();">ROBCO</button>
+    <button class="theme-btn" onclick="setTheme('#dc143c'); sfxClick();">IMPERIAL</button>
+    <button class="theme-btn" onclick="setTheme('#0078d7'); sfxClick();">BOS</button>
+    <button class="theme-btn" onclick="setTheme('#e6b800'); sfxClick();">NCR</button>
+</div>
+
+<div id="lockout-screen">
+    <div>TERMINAL LOCKED</div>
+    <div>PLEASE CONTACT ADMINISTRATOR</div>
+    <div id="lockout-timer" style="margin-top: 20px;"></div>
+</div>
+
+<div id="terminal-container">
+    <div class="header">
+        ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM<br>
+        COPYRIGHT 2075-2077 ROBCO INDUSTRIES<br>
+        -Server 1-<br><br>
+        Protocol Override: VERY HARD<br>
+        Enter Password Now
+    </div>
+
+    <div class="attempts" id="attempts-display"></div>
+
+    <div id="game-area">
+        <div class="column" id="col1"></div>
+        <div class="column" id="col2"></div>
+    </div>
+
+    <div id="output-log" id="log-container"></div>
+</div>
+
+<script>
+    // --- CONFIGURATION ---
+    const GOOGLE_DOC_URL = "https://docs.google.com/document/d/1SpwUkogPndLPmBVoenjBhuyWh3374QWAE_WDTTnYNWw"; 
+    
+    const wordPool = [
+        "BROTHERHOODS", "PRESERVATION", "CONSERVATION", "TRANSMISSION", "ASSIMILATION",
+        "CATASTROPHIC", "TECHNOLOGIES", "CIVILIZATION", "ANNIHILATION", "REGENERATION",
+        "ILLUMINATING", "PURIFICATION", "CONSTRUCTION", "MODIFICATION", "PACIFICATION",
+        "INDEPENDENCE", "APPRECIATION", "INTERFERENCE", "OVERWHELMING", "RADIOLOGICAL"
+    ];
+    
+    const GIBBERISH_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
+    const BRACKET_PAIRS = { '(': ')', '[': ']', '{': '}', '<': '>' };
+    
+    let attempts = 4;
+    let logs = ["> AWAITING INPUT..."];
+    let password = "";
+    let wordsOnBoard = [];
+    let lockoutInterval;
+
+    // --- AUDIO & MUSIC ENGINE ---
+    let audioCtx;
+    let audioInitialized = false;
+
+    // Wakes up sound effects and local music on the user's first click
+    function wakeUpAudio() {
+        if (audioInitialized) return;
+        
+        // Start Synthesizer
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        // Start Local Music
+        const bgMusic = document.getElementById('bg-music');
+        bgMusic.volume = 0.5; // Set to 50% volume
+        bgMusic.play().catch(e => console.log("Audio play blocked until interaction."));
+        
+        audioInitialized = true;
+    }
+
+    // Attach wake up to document so ANY first click starts the music
+    document.addEventListener('click', wakeUpAudio, { once: true });
+
+    // Retro Terminal Synthesizer (Generates Sounds Mathmatically)
+    function playTone(freq, type, duration, vol) {
+        if (!audioCtx) return;
+        const osc = audioCtx.createOscillator();
+        const gainNode = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function sfxHover() { playTone(1200, 'square', 0.05, 0.01); }  // Faint hover tick
+    function sfxClick() { playTone(800, 'square', 0.1, 0.05); }    // Standard keystroke
+    function sfxError() { playTone(150, 'sawtooth', 0.4, 0.1); }   // Harsh buzz
+    function sfxSuccess() {                                        // Chime sequence
+        playTone(400, 'sine', 0.1, 0.1);
+        setTimeout(() => playTone(600, 'sine', 0.1, 0.1), 100);
+        setTimeout(() => playTone(800, 'sine', 0.3, 0.1), 200);
+    }
+
+    // Faction Themes
+    function setTheme(hex) {
+        document.documentElement.style.setProperty('--terminal-color', hex);
+    }
+
+    // --- LOCKOUT LOGIC ---
+    function checkLockout() {
+        const lockoutTime = localStorage.getItem('terminalLockout');
+        if (lockoutTime) {
+            const timeRemaining = parseInt(lockoutTime) - Date.now();
+            if (timeRemaining > 0) {
+                enforceLockout(timeRemaining);
+                return true;
+            } else {
+                localStorage.removeItem('terminalLockout');
+            }
+        }
+        return false;
+    }
+
+    function enforceLockout(msLeft) {
+        document.getElementById('terminal-container').style.display = 'none';
+        document.getElementById('lockout-screen').style.display = 'flex';
+        
+        clearInterval(lockoutInterval);
+        lockoutInterval = setInterval(() => {
+            const left = parseInt(localStorage.getItem('terminalLockout')) - Date.now();
+            if (left <= 0) {
+                clearInterval(lockoutInterval);
+                localStorage.removeItem('terminalLockout');
+                location.reload(); 
+            } else {
+                const mins = Math.floor(left / 60000);
+                const secs = Math.floor((left % 60000) / 1000).toString().padStart(2, '0');
+                document.getElementById('lockout-timer').innerText = `TIMEOUT: ${mins}:${secs}`;
+            }
+        }, 1000);
+    }
+
+    function triggerFailLockout() {
+        const lockoutMs = 5 * 60 * 1000; 
+        localStorage.setItem('terminalLockout', Date.now() + lockoutMs);
+        enforceLockout(lockoutMs);
+    }
+
+    // --- GAME ENGINE ---
+    function updateAttempts() {
+        let blocks = "";
+        for(let i=0; i<attempts; i++) blocks += "&#9608; ";
+        document.getElementById('attempts-display').innerHTML = `${attempts} ATTEMPT(S) LEFT: ${blocks}`;
+    }
+
+    function addLog(text) {
+        logs.push(text);
+        if (logs.length > 5) logs.shift();
+        const logHtml = logs.map(l => `<div class="log-entry">${l}</div>`).join('');
+        document.getElementById('output-log').innerHTML = logHtml;
+    }
+
+    function generateBoard() {
+        wordsOnBoard = wordPool.sort(() => 0.5 - Math.random()).slice(0, 15);
+        password = wordsOnBoard[Math.floor(Math.random() * wordsOnBoard.length)];
+        let slots = new Array(544).fill(null);
+        
+        wordsOnBoard.forEach(word => {
+            let placed = false;
+            while(!placed) {
+                let idx = Math.floor(Math.random() * (544 - 12));
+                let row = Math.floor(idx / 16);
+                let rowEnd = Math.floor((idx + 11) / 16);
+                
+                if (row === rowEnd) {
+                    let isFree = true;
+                    for(let i=0; i<12; i++) { if(slots[idx + i] !== null) isFree = false; }
+                    if(isFree) {
+                        for(let i=0; i<12; i++) slots[idx+i] = { type: 'word', char: word[i], wordId: word };
+                        placed = true;
+                    }
+                }
+            }
+        });
+
+        for(let i=0; i<544; i++) {
+            if(slots[i] === null) {
+                slots[i] = { type: 'gibberish', char: GIBBERISH_CHARS[Math.floor(Math.random() * GIBBERISH_CHARS.length)] };
+            }
+        }
+
+        for(let line=0; line<34; line++) {
+            let start = line * 16;
+            let gibberishStreak = [];
+            
+            for(let i=start; i<start+16; i++) {
+                if(slots[i].type === 'gibberish') {
+                    gibberishStreak.push(i);
+                } else {
+                    if(gibberishStreak.length >= 3 && Math.random() > 0.4) createBracket(slots, gibberishStreak);
+                    gibberishStreak = [];
+                }
+            }
+            if(gibberishStreak.length >= 3 && Math.random() > 0.4) createBracket(slots, gibberishStreak);
+        }
+
+        renderBoard(slots);
+    }
+
+    function createBracket(slots, streakArr) {
+        let bLen = Math.floor(Math.random() * (streakArr.length - 1)) + 2;
+        let openKeys = Object.keys(BRACKET_PAIRS);
+        let openChar = openKeys[Math.floor(Math.random() * openKeys.length)];
+        let closeChar = BRACKET_PAIRS[openChar];
+        
+        let startIdx = streakArr[0];
+        let endIdx = streakArr[bLen - 1];
+        let bracketId = 'b_' + Math.random().toString(36).substr(2, 9);
+
+        slots[startIdx].char = openChar;
+        slots[startIdx].bracketRole = 'open';
+        slots[endIdx].char = closeChar;
+        slots[endIdx].bracketRole = 'close';
+
+        for(let i=startIdx; i<=endIdx; i++) {
+            slots[i].bracketId = bracketId;
+        }
+    }
+
+    function escapeHTML(str) {
+        return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function renderBoard(slots) {
+        let col1 = document.getElementById('col1');
+        let col2 = document.getElementById('col2');
+        let currentHtml = "";
+        
+        let activeWord = null;
+        let activeBracket = null;
+
+        for(let i=0; i<544; i++) {
+            if(i % 16 === 0) {
+                if(i !== 0) currentHtml += "<br>";
+                currentHtml += "0x" + Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0') + " ";
+            }
+
+            let slot = slots[i];
+
+            if (slot.type === 'word') {
+                if(activeWord !== slot.wordId) {
+                    currentHtml += `<span class="word" data-word="${slot.wordId}" onclick="guessWord('${slot.wordId}')" onmouseenter="sfxHover()">`;
+                    activeWord = slot.wordId;
+                }
+                currentHtml += escapeHTML(slot.char);
+                if (i === 543 || slots[i+1]?.wordId !== activeWord) {
+                    currentHtml += `</span>`;
+                    activeWord = null;
+                }
+            } 
+            else if (slot.bracketId) {
+                if(activeBracket !== slot.bracketId) {
+                    currentHtml += `<span class="bracket" onclick="useBracket(this)" onmouseenter="sfxHover()">`;
+                    activeBracket = slot.bracketId;
+                }
+                currentHtml += escapeHTML(slot.char);
+                if (i === 543 || slots[i+1]?.bracketId !== activeBracket) {
+                    currentHtml += `</span>`;
+                    activeBracket = null;
+                }
+            } 
+            else {
+                // Now plain gibberish is wrapped in a span so it can highlight and click individually
+                currentHtml += `<span class="char" onclick="sfxClick()" onmouseenter="sfxHover()">${escapeHTML(slot.char)}</span>`;
+            }
+
+            if(i === 271) {
+                col1.innerHTML = currentHtml;
+                currentHtml = "";
+            }
+        }
+        col2.innerHTML = currentHtml;
+    }
+
+    // --- INTERACTION LOGIC ---
+    window.guessWord = function(guess) {
+        wakeUpAudio();
+        
+        let likeness = 0;
+        for(let i=0; i<12; i++) { if(guess[i] === password[i]) likeness++; }
+        
+        if(guess === password) {
+            sfxSuccess();
+            addLog(`> ${guess}`);
+            addLog("> EXACT MATCH!");
+            addLog("> ACCESS GRANTED.");
+            setTimeout(() => { window.location.href = GOOGLE_DOC_URL; }, 2000);
+            return;
+        }
+
+        attempts--;
+        sfxError();
+        addLog(`> ${guess}`);
+        addLog(`> Entry denied.`);
+        addLog(`> Likeness=${likeness}`);
+        updateAttempts();
+
+        if (attempts <= 0) {
+            addLog("> SECURITY LOCKOUT INITIATED.");
+            setTimeout(triggerFailLockout, 1000);
+        }
+    }
+
+    window.useBracket = function(el) {
+        wakeUpAudio();
+        sfxClick();
+        
+        if(el.dataset.used === 'true') return;
+        el.dataset.used = 'true';
+        el.style.pointerEvents = 'none';
+
+        if(Math.random() < 0.20 && attempts < 4) {
+            attempts = 4;
+            updateAttempts();
+            addLog("> Tries Reset.");
+        } else {
+            let activeWords = Array.from(document.querySelectorAll('.word:not(.dud)'));
+            let duds = activeWords.filter(w => w.dataset.word !== password);
+            
+            if(duds.length > 0) {
+                let toRemove = duds[Math.floor(Math.random() * duds.length)];
+                toRemove.innerHTML = '.'.repeat(12);
+                toRemove.classList.add('dud');
+                addLog("> Dud removed.");
+            } else {
+                addLog("> Error: No duds found.");
+            }
+        }
+    }
+
+    // Initialize Game
+    if (!checkLockout()) {
+        updateAttempts();
+        generateBoard();
+        addLog("> INITIALIZED...");
+    }
+</script>
+
+</body>
+</html>
