@@ -40,16 +40,7 @@
             pointer-events: none;
         }
 
-        #terminal-container {
-            padding: 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 3;
-            text-shadow: 0 0 5px var(--terminal-color);
-            font-size: 1.3rem;
-        }
-
+        /* --- UI ELEMENTS --- */
         #theme-selector {
             position: absolute;
             top: 1rem;
@@ -70,6 +61,66 @@
         }
         .theme-btn:hover { background: var(--terminal-color); color: var(--bg-color); }
 
+        /* --- MUSIC PLAYER --- */
+        #music-player {
+            position: absolute;
+            bottom: 2rem;
+            left: 2rem;
+            z-index: 11;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            background: var(--bg-color);
+            padding: 10px 15px;
+            border: 1px solid var(--terminal-color);
+            min-width: 250px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        #song-title {
+            font-size: 1.1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            border-bottom: 1px dashed var(--terminal-color);
+            padding-bottom: 5px;
+        }
+
+        .music-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .music-btn {
+            background: none;
+            border: 1px solid var(--terminal-color);
+            color: var(--terminal-color);
+            font-family: inherit;
+            cursor: pointer;
+            padding: 2px 8px;
+            text-transform: uppercase;
+        }
+        .music-btn:hover { background: var(--terminal-color); color: var(--bg-color); }
+
+        input[type=range] {
+            accent-color: var(--terminal-color);
+            width: 100px;
+            cursor: pointer;
+        }
+
+        /* --- GAME CONTAINER --- */
+        #terminal-container {
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 5px var(--terminal-color);
+            font-size: 1.3rem;
+            display: block; 
+        }
+
         .header { margin-bottom: 1.5rem; }
         .attempts { margin-bottom: 1rem; letter-spacing: 2px; }
         
@@ -82,7 +133,6 @@
             white-space: pre;
         }
 
-        /* All interactive elements share the hover effect now */
         .word, .bracket, .char { cursor: pointer; transition: 0s; }
         .word:hover:not(.dud), .bracket:hover, .char:hover { background-color: var(--terminal-color); color: var(--bg-color); }
         .dud { opacity: 0.5; pointer-events: none; }
@@ -99,38 +149,82 @@
         }
 
         .log-entry { margin: 0; }
+
+        /* --- UNLOCKED DOCUMENT CONTAINER --- */
+        #document-container {
+            display: none; 
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 5px var(--terminal-color);
+            font-size: 1.2rem;
+            line-height: 1.5;
+            height: 90vh; 
+            overflow-y: auto; 
+            user-select: text; 
+        }
+
+        #document-container::-webkit-scrollbar { width: 12px; }
+        #document-container::-webkit-scrollbar-track { background: var(--bg-color); border-left: 1px solid var(--terminal-color); }
+        #document-container::-webkit-scrollbar-thumb { background: var(--terminal-color); }
+
+        .doc-header { text-align: center; border-bottom: 2px dashed var(--terminal-color); margin-bottom: 2rem; padding-bottom: 1rem; }
+        .doc-section-title { background: var(--terminal-color); color: var(--bg-color); padding: 2px 10px; display: inline-block; margin-top: 1.5rem; margin-bottom: 1rem; font-weight: bold; }
         
+        .terminal-img {
+            max-width: 100%;
+            height: auto;
+            border: 2px solid var(--terminal-color);
+            margin: 10px 0;
+            opacity: 0.85; 
+            display: block;
+        }
+
+        .img-grid { display: flex; gap: 20px; justify-content: center; margin-bottom: 1rem; }
+
+        table { width: 100%; border-collapse: collapse; margin-bottom: 1.5rem; }
+        th, td { border: 1px solid var(--terminal-color); padding: 8px; vertical-align: top; text-align: left; }
+        th { border-bottom: 2px solid var(--terminal-color); }
+        
+        .special-grid { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 1rem; }
+        .special-stat { border: 1px solid var(--terminal-color); padding: 5px 15px; text-align: center; }
+        .special-stat span { display: block; font-size: 1.5rem; font-weight: bold; }
+
+        .alert-text { animation: blink 2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+        /* --- LOCKOUT SCREEN --- */
         #lockout-screen {
-            display: none;
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color);
-            z-index: 20;
-            justify-content: center;
-            align-items: center;
-            flex-direction: column;
-            text-align: center;
-            font-size: 2rem;
-            text-shadow: 0 0 10px var(--terminal-color);
+            display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); z-index: 20;
+            justify-content: center; align-items: center; flex-direction: column;
+            text-align: center; font-size: 2rem; text-shadow: 0 0 10px var(--terminal-color);
             animation: pulse 2s infinite;
         }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.7; } }
     </style>
 </head>
 <body>
 
-<audio id="bg-music" src="music.mp3" loop></audio>
+<audio id="bg-music"></audio>
 
 <div id="theme-selector">
     <button class="theme-btn" onclick="setTheme('#1ae23b'); sfxClick();">ROBCO</button>
-    <button class="theme-btn" onclick="setTheme('#dc143c'); sfxClick();">IMPERIAL</button>
+    <button class="theme-btn" onclick="setTheme('#dc143c'); sfxClick();">LOCKDOWN</button>
     <button class="theme-btn" onclick="setTheme('#0078d7'); sfxClick();">BOS</button>
     <button class="theme-btn" onclick="setTheme('#e6b800'); sfxClick();">NCR</button>
+</div>
+
+<div id="music-player">
+    <div id="song-title">AWAITING AUDIO...</div>
+    <div class="music-controls">
+        <button class="music-btn" id="play-pause-btn" onclick="togglePlay()">PLAY</button>
+        <button class="music-btn" onclick="skipTrack()">SKIP</button>
+        <input type="range" id="volume-slider" min="0" max="1" step="0.01" value="0.5" oninput="changeVolume(this.value)">
+    </div>
 </div>
 
 <div id="lockout-screen">
@@ -143,7 +237,7 @@
     <div class="header">
         ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM<br>
         COPYRIGHT 2075-2077 ROBCO INDUSTRIES<br>
-        -Server 1-<br><br>
+        <span onclick="adminBypass()" style="cursor: default;">-Server 1-</span><br><br>
         Protocol Override: VERY HARD<br>
         Enter Password Now
     </div>
@@ -158,10 +252,154 @@
     <div id="output-log" id="log-container"></div>
 </div>
 
-<script>
-    // --- CONFIGURATION ---
-    const GOOGLE_DOC_URL = "https://docs.google.com/document/d/1SpwUkogPndLPmBVoenjBhuyWh3374QWAE_WDTTnYNWw"; 
+<div id="document-container">
+    <div class="doc-header">
+        <h1>PERSONNEL FILE# 9241-3174-20</h1>
+        <div>ACCESS LEVEL: VERIFIED</div>
+        
+        <img src="bos_logo.png" alt="Emblem" class="terminal-img" style="max-width: 200px; margin: 10px auto;">
+    </div>
+
+    <div class="doc-section-title">SECTION I: IDENTIFIERS</div>
     
+    <table>
+        <tr>
+            <th>FULL NAME</th>
+            <td>[Olivia Erin Schnee -> [Former] Whitechapel]</td>
+            <th>ALIAS(ES)</th>
+            <td>["Olivia", "Liv", "Olive[Weiss]"]</td>
+        </tr>
+        <tr>
+            <th>DATE OF BIRTH</th>
+            <td>[08 AUG 21##]</td>
+            <th>PLACE OF BIRTH</th>
+            <td>[Baja, California]</td>
+        </tr>
+        <tr>
+            <th>GENDER</th>
+            <td>[FEMALE]</td>
+            <th>RACE / ETHNICITY</th>
+            <td>[CAUCASIAN / ENGLISH]</td>
+        </tr>
+        <tr>
+            <th>HAIR COLOR</th>
+            <td>[AUBURN]</td>
+            <th>EYE COLOR</th>
+            <td>[HAZEL]</td>
+        </tr>
+        <tr>
+            <th colspan="4">OTHER MARKINGS</th>
+        </tr>
+        <tr>
+            <td colspan="4">[Throat Scarring, minor cuts and scrapes along body, FOA Cross tattoo on lower behind thigh]</td>
+        </tr>
+    </table>
+
+    <div class="img-grid">
+        <img src="photo1.png" alt="Photograph 1" class="terminal-img" style="max-width: 400px;">
+        <img src="photo2.png" alt="Photograph 2" class="terminal-img" style="max-width: 300px;">
+    </div>
+
+    <div class="doc-section-title">SECTION II: ASSIGNMENT</div>
+    
+    <div class="special-grid">
+        <div class="special-stat">STR<span>#</span></div>
+        <div class="special-stat">PER<span>#</span></div>
+        <div class="special-stat">END<span>#</span></div>
+        <div class="special-stat">CHA<span>#</span></div>
+        <div class="special-stat">INT<span>#</span></div>
+        <div class="special-stat">AGI<span>#</span></div>
+        <div class="special-stat">LCK<span>#</span></div>
+    </div>
+
+    <table>
+        <tr>
+            <th>PROFICIENCIES</th>
+            <td>[Former FOA medical Experience [Medicine], Weapons repair manual [Repair], Marksman Training [Guns], [Chem addiction management skills], [Basic Morse Code ability.]</td>
+        </tr>
+        <tr>
+            <th>RANK / CLASS</th>
+            <td>[N/A] / [N/A]</td>
+        </tr>
+        <tr>
+            <th>AWARDS / NOTES</th>
+            <td>[N/A] / [INSERT NOTES HERE, OPTIONAL]</td>
+        </tr>
+    </table>
+
+    <div class="doc-section-title">SECTION III: PERSONAL HISTORY</div>
+    
+    <p><strong>ADOLESCENCE:</strong><br>
+    [Born and raised within a Followers of the Apocalypse to two Followers, Mother[Surgeon] Father[Research] Early life consisted of time within the camp providing aid to the NCR expeditions into the Baja Territories, where she learned valuable skills from her parents about life, the wasteland, and medical knowledge.]</p>
+    
+    <p class="alert-text">[ADDENDUM 6/20/21## CLERGICAL STAFF ONLY: ADDITIONAL BACKGROUND KNOWLEDGE HAS COME TO LIGHT INVOLVING THE CIRCUMSTANCES INVOLVING THE DEATH OF OLIVIA SCHNEE[WHITECHAPEL]’s PARENTS DEMISE CORRELATES WITH RECORDS OF A LOST HILL EXPEDITION IN LOWER BAJA ENGAGING IN COMBAT WITH NCR FORCES AND CIVILIANS ASSISTING THEM]</p>
+
+    <p><strong>ADULTHOOD:</strong><br>
+    [Upon Reaching the age of Thirteen, began learning basic medical skills and training under Follower Guidance working alongside her mother and father and the other members of the camp usually treating locals caught in the crossfire or the occasional NCR Garrison when field hospitals were understaffed. Upon reaching the age of Twenty she set out up north to see what lies beyond California and the territory she knew, eventually making her way to Texas.]</p>
+
+    <p><strong>BROTHERHOOD:</strong><br>
+    [Spending a bit of time in the lower portion of Oregon Olivia eventually ventured further north into the Frontier assisting locals and caravans offering basic medical services for caps. Eventually stumbling her way into Camp Rome and the brotherhood where she quickly joined alongside three other aspirants getting caught in raider attack on Camp Rome, after successfully defending Camp Rome she alongside the other three Aspirants were made full initiates.]</p>
+    <p>[A period of around two months has passed. I have experienced heartbreak, loss, love, so much has come to pass and I have grown so much in a short time, I cannot fathom what the future has to hold!]</p>
+
+    <div class="doc-section-title">SECTION IV: MEDICINAL HISTORY</div>
+    
+    <p class="alert-text" style="font-size: 0.9rem; text-align: center;">NOTE TO SCRIBES: THIS DOCUMENT IS TO BE ARCHIVED AND SECTION IV’S STATUS CHANGED TO DECEASED IN THE EVENT OF THE DEATH OF THE INDIVIDUAL DESCRIBED</p>
+
+    <table>
+        <tr>
+            <th>PHYSICAL STATUS</th>
+            <td>[HEALTHY]</td>
+            <th>PSYCHOLOGICAL STATUS</th>
+            <td>"Unstable" [(Major Desensitization)]</td>
+        </tr>
+        <tr>
+            <th>ADDICTIONS</th>
+            <td>[Calm-x, Med-x, Daytripper, Rebound]</td>
+            <th>DIAGNOSES</th>
+            <td>[Cyclothymia > Bipolar Disorder[2]]</td>
+        </tr>
+        <tr>
+            <th>INJURIES</th>
+            <td>[Vocal Cord Damage.]</td>
+            <th>LOYALTY</th>
+            <td>[STANDARD.]</td>
+        </tr>
+    </table>
+    <p><strong>OTHER NOTES:</strong> [Repeated Vocal Cord retearing has led to some minor improvements in Vocal capabilities but is more than likely only minor and is frequently hindered by repetitive damaging actions like screaming or yelling.]</p>
+
+    <div class="doc-section-title">SECTION V: DISCIPLINARY</div>
+    
+    <p class="alert-text">[ATTENTION, UNAUTHORIZED ACCESS PROHIBITED]</p>
+    <p><strong>REPORT(S):</strong><br>
+    *[MAJOR ALTERCATION WITHIN CASTE.]<br>
+    *[ATTEMPTED MURDER WHILE IN PSYCHOTIC STATE]<br>
+    -[PROVISIONAL RELEASE DICTATED From - Paladin Commander (Now Elder) Ilyinishna]</p>
+
+    <div class="doc-section-title">SECTION VII: IDEOLOGY</div>
+    
+    <p><strong>TRAXIS:</strong> [Maxonist-Progressive]<br>
+    <strong>STANCE:</strong> [MODERATE]<br>
+    <strong>OTHER NOTES:</strong> [Moderate on most brotherhood political stances, due to her outsider background.]</p>
+    
+    <p><strong>DEFINITIONS ALIGNMENT:</strong></p>
+    <ul>
+        <li><strong>Maxonist-Progressive:</strong> Willing to cooperate with and help wastelanders.</li>
+        <li><strong>Moderate:</strong> Willing to compromise. Less fanatical. More accepting of other perspectives.</li>
+    </ul>
+
+    <br><br><br>
+    <div style="text-align: center;">--- END OF FILE ---</div>
+</div>
+
+<script>
+    // --- TRACK LIST CONFIGURATION ---
+    // Add your exact audio file names here. You can add as many as you want.
+    const TRACK_LIST = [
+        "music.mp3",
+        // "another_song.mp3", 
+        // "ambient_noise.mp3"
+    ];
+
     const wordPool = [
         "BROTHERHOODS", "PRESERVATION", "CONSERVATION", "TRANSMISSION", "ASSIMILATION",
         "CATASTROPHIC", "TECHNOLOGIES", "CIVILIZATION", "ANNIHILATION", "REGENERATION",
@@ -181,27 +419,67 @@
     // --- AUDIO & MUSIC ENGINE ---
     let audioCtx;
     let audioInitialized = false;
+    let currentTrackIdx = 0;
+    const bgMusic = document.getElementById('bg-music');
 
-    // Wakes up sound effects and local music on the user's first click
+    // Format song name for the UI (removes .mp3 and replaces underscores with spaces)
+    function formatSongName(filename) {
+        return filename.replace('.mp3', '').replace(/_/g, ' ').toUpperCase();
+    }
+
+    function loadTrack(index) {
+        bgMusic.src = TRACK_LIST[index];
+        document.getElementById('song-title').innerText = "PLAYING: " + formatSongName(TRACK_LIST[index]);
+        if (audioInitialized) {
+            bgMusic.play();
+            document.getElementById('play-pause-btn').innerText = "PAUSE";
+        }
+    }
+
+    function togglePlay() {
+        if (!audioInitialized) {
+            wakeUpAudio();
+            return;
+        }
+        sfxClick();
+        if (bgMusic.paused) {
+            bgMusic.play();
+            document.getElementById('play-pause-btn').innerText = "PAUSE";
+        } else {
+            bgMusic.pause();
+            document.getElementById('play-pause-btn').innerText = "PLAY";
+        }
+    }
+
+    function skipTrack() {
+        sfxClick();
+        currentTrackIdx = (currentTrackIdx + 1) % TRACK_LIST.length;
+        loadTrack(currentTrackIdx);
+    }
+
+    function changeVolume(val) {
+        bgMusic.volume = val;
+    }
+
+    // Auto-skip to next track when one ends
+    bgMusic.addEventListener('ended', skipTrack);
+
     function wakeUpAudio() {
         if (audioInitialized) return;
         
-        // Start Synthesizer
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        // Start Local Music
-        const bgMusic = document.getElementById('bg-music');
-        bgMusic.volume = 0.5; // Set to 50% volume
-        bgMusic.play().catch(e => console.log("Audio play blocked until interaction."));
+        bgMusic.volume = document.getElementById('volume-slider').value; 
+        bgMusic.play().then(() => {
+            document.getElementById('play-pause-btn').innerText = "PAUSE";
+        }).catch(e => console.log("Audio play blocked until interaction."));
         
         audioInitialized = true;
     }
 
-    // Attach wake up to document so ANY first click starts the music
     document.addEventListener('click', wakeUpAudio, { once: true });
 
-    // Retro Terminal Synthesizer (Generates Sounds Mathmatically)
     function playTone(freq, type, duration, vol) {
         if (!audioCtx) return;
         const osc = audioCtx.createOscillator();
@@ -216,10 +494,10 @@
         osc.stop(audioCtx.currentTime + duration);
     }
 
-    function sfxHover() { playTone(1200, 'square', 0.05, 0.01); }  // Faint hover tick
-    function sfxClick() { playTone(800, 'square', 0.1, 0.05); }    // Standard keystroke
-    function sfxError() { playTone(150, 'sawtooth', 0.4, 0.1); }   // Harsh buzz
-    function sfxSuccess() {                                        // Chime sequence
+    function sfxHover() { playTone(1200, 'square', 0.05, 0.01); }  
+    function sfxClick() { playTone(800, 'square', 0.1, 0.05); }    
+    function sfxError() { playTone(150, 'sawtooth', 0.4, 0.1); }   
+    function sfxSuccess() {                                        
         playTone(400, 'sine', 0.1, 0.1);
         setTimeout(() => playTone(600, 'sine', 0.1, 0.1), 100);
         setTimeout(() => playTone(800, 'sine', 0.3, 0.1), 200);
@@ -247,6 +525,7 @@
 
     function enforceLockout(msLeft) {
         document.getElementById('terminal-container').style.display = 'none';
+        document.getElementById('document-container').style.display = 'none';
         document.getElementById('lockout-screen').style.display = 'flex';
         
         clearInterval(lockoutInterval);
@@ -394,7 +673,6 @@
                 }
             } 
             else {
-                // Now plain gibberish is wrapped in a span so it can highlight and click individually
                 currentHtml += `<span class="char" onclick="sfxClick()" onmouseenter="sfxHover()">${escapeHTML(slot.char)}</span>`;
             }
 
@@ -418,7 +696,11 @@
             addLog(`> ${guess}`);
             addLog("> EXACT MATCH!");
             addLog("> ACCESS GRANTED.");
-            setTimeout(() => { window.location.href = GOOGLE_DOC_URL; }, 2000);
+            
+            setTimeout(() => { 
+                document.getElementById('terminal-container').style.display = 'none';
+                document.getElementById('document-container').style.display = 'block';
+            }, 1500);
             return;
         }
 
@@ -462,8 +744,29 @@
         }
     }
 
+    // --- ADMIN BYPASS ---
+    window.adminBypass = function() {
+        const pw = prompt("ADMINISTRATOR OVERRIDE REQUIRED.\nINPUT PASSWORD:");
+        // Accepts "Weiss" or "weiss"
+        if (pw && pw.toLowerCase() === "weiss") {
+            sfxSuccess();
+            wakeUpAudio();
+            addLog("> OVERRIDE ACCEPTED.");
+            addLog("> ACCESS GRANTED.");
+            
+            setTimeout(() => { 
+                document.getElementById('terminal-container').style.display = 'none';
+                document.getElementById('document-container').style.display = 'block';
+            }, 1000);
+        } else if (pw) {
+            sfxError();
+            addLog("> OVERRIDE DENIED.");
+        }
+    }
+
     // Initialize Game
     if (!checkLockout()) {
+        loadTrack(currentTrackIdx);
         updateAttempts();
         generateBoard();
         addLog("> INITIALIZED...");
