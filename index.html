@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="author" content="florida">
     <meta property="og:title" content="ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM">
     <meta property="og:description" content="WARNING: VERY HARD SECURITY LOCKOUT IMMINENT.">
     <meta property="og:color" content="#dc143c">
@@ -150,6 +151,36 @@
 
         .log-entry { margin: 0; }
 
+        /* --- TRANSITION SCREEN --- */
+        #transition-screen {
+            display: none; 
+            padding: 2rem;
+            max-width: 600px;
+            margin: 15vh auto 0 auto;
+            position: relative;
+            z-index: 3;
+            text-shadow: 0 0 5px var(--terminal-color);
+            font-size: 1.5rem;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        #progress-bar-container {
+            width: 100%;
+            border: 2px solid var(--terminal-color);
+            height: 30px;
+            margin-top: 2rem;
+            padding: 2px;
+            box-sizing: border-box;
+        }
+
+        #progress-bar {
+            width: 0%;
+            height: 100%;
+            background-color: var(--terminal-color);
+            transition: width 0.1s linear;
+        }
+
         /* --- UNLOCKED DOCUMENT CONTAINER --- */
         #document-container {
             display: none; 
@@ -192,7 +223,25 @@
         .special-stat { border: 1px solid var(--terminal-color); padding: 5px 15px; text-align: center; }
         .special-stat span { display: block; font-size: 1.5rem; font-weight: bold; }
 
-        .alert-text { animation: blink 2s infinite; }
+        /* Modified Alert Text Formatting */
+        .addendum-box { 
+            border: 2px dashed var(--terminal-color); 
+            padding: 15px; 
+            margin: 15px 0; 
+            animation: slowBlink 4s infinite; 
+            text-align: justify;
+        }
+        @keyframes slowBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+        .crimson-alert { 
+            color: #dc143c !important; 
+            text-shadow: 0 0 5px #dc143c !important; 
+            animation: blink 2s infinite; 
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            margin: 15px 0;
+        }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
 
         /* --- LOCKOUT SCREEN --- */
@@ -231,6 +280,14 @@
     <div>TERMINAL LOCKED</div>
     <div>PLEASE CONTACT ADMINISTRATOR</div>
     <div id="lockout-timer" style="margin-top: 20px;"></div>
+</div>
+
+<div id="transition-screen">
+    <div style="margin-bottom: 1rem;">ROBCO MAINFRAME ACCESS GRANTED</div>
+    <div id="transition-text">DECRYPTING ARCHIVED FILE...</div>
+    <div id="progress-bar-container">
+        <div id="progress-bar"></div>
+    </div>
 </div>
 
 <div id="terminal-container">
@@ -332,7 +389,9 @@
     <p><strong>ADOLESCENCE:</strong><br>
     [Born and raised within a Followers of the Apocalypse to two Followers, Mother[Surgeon] Father[Research] Early life consisted of time within the camp providing aid to the NCR expeditions into the Baja Territories, where she learned valuable skills from her parents about life, the wasteland, and medical knowledge.]</p>
     
-    <p class="alert-text">[ADDENDUM 6/20/21## CLERGICAL STAFF ONLY: ADDITIONAL BACKGROUND KNOWLEDGE HAS COME TO LIGHT INVOLVING THE CIRCUMSTANCES INVOLVING THE DEATH OF OLIVIA SCHNEE[WHITECHAPEL]’s PARENTS DEMISE CORRELATES WITH RECORDS OF A LOST HILL EXPEDITION IN LOWER BAJA ENGAGING IN COMBAT WITH NCR FORCES AND CIVILIANS ASSISTING THEM]</p>
+    <div class="addendum-box">
+        [ADDENDUM 6/20/21## CLERGICAL STAFF ONLY: ADDITIONAL BACKGROUND KNOWLEDGE HAS COME TO LIGHT INVOLVING THE CIRCUMSTANCES INVOLVING THE DEATH OF OLIVIA SCHNEE[WHITECHAPEL]’s PARENTS DEMISE CORRELATES WITH RECORDS OF A LOST HILL EXPEDITION IN LOWER BAJA ENGAGING IN COMBAT WITH NCR FORCES AND CIVILIANS ASSISTING THEM]
+    </div>
 
     <p><strong>ADULTHOOD:</strong><br>
     [Upon Reaching the age of Thirteen, began learning basic medical skills and training under Follower Guidance working alongside her mother and father and the other members of the camp usually treating locals caught in the crossfire or the occasional NCR Garrison when field hospitals were understaffed. Upon reaching the age of Twenty she set out up north to see what lies beyond California and the territory she knew, eventually making her way to Texas.]</p>
@@ -343,7 +402,9 @@
 
     <div class="doc-section-title">SECTION IV: MEDICINAL HISTORY</div>
     
-    <p class="alert-text" style="font-size: 0.9rem; text-align: center;">NOTE TO SCRIBES: THIS DOCUMENT IS TO BE ARCHIVED AND SECTION IV’S STATUS CHANGED TO DECEASED IN THE EVENT OF THE DEATH OF THE INDIVIDUAL DESCRIBED</p>
+    <div class="crimson-alert">
+        NOTE TO SCRIBES: THIS DOCUMENT IS TO BE ARCHIVED AND SECTION IV’S STATUS CHANGED TO DECEASED IN THE EVENT OF THE DEATH OF THE INDIVIDUAL DESCRIBED
+    </div>
 
     <table>
         <tr>
@@ -369,7 +430,10 @@
 
     <div class="doc-section-title">SECTION V: DISCIPLINARY</div>
     
-    <p class="alert-text">[ATTENTION, UNAUTHORIZED ACCESS PROHIBITED]</p>
+    <div class="crimson-alert">
+        [ATTENTION, UNAUTHORIZED ACCESS PROHIBITED]
+    </div>
+    
     <p><strong>REPORT(S):</strong><br>
     *[MAJOR ALTERCATION WITHIN CASTE.]<br>
     *[ATTEMPTED MURDER WHILE IN PSYCHOTIC STATE]<br>
@@ -393,7 +457,6 @@
 
 <script>
     // --- TRACK LIST CONFIGURATION ---
-    // Add your exact audio file names here. You can add as many as you want.
     const TRACK_LIST = [
         "STARSET - SOMETHING WICKED.mp3",
         "STARSET - SYMBIOTIC.mp3", 
@@ -422,7 +485,6 @@
     let currentTrackIdx = 0;
     const bgMusic = document.getElementById('bg-music');
 
-    // Format song name for the UI (removes .mp3 and replaces underscores with spaces)
     function formatSongName(filename) {
         return filename.replace('.mp3', '').replace(/_/g, ' ').toUpperCase();
     }
@@ -461,7 +523,6 @@
         bgMusic.volume = val;
     }
 
-    // Auto-skip to next track when one ends
     bgMusic.addEventListener('ended', skipTrack);
 
     function wakeUpAudio() {
@@ -526,6 +587,7 @@
     function enforceLockout(msLeft) {
         document.getElementById('terminal-container').style.display = 'none';
         document.getElementById('document-container').style.display = 'none';
+        document.getElementById('transition-screen').style.display = 'none';
         document.getElementById('lockout-screen').style.display = 'flex';
         
         clearInterval(lockoutInterval);
@@ -547,6 +609,39 @@
         const lockoutMs = 5 * 60 * 1000; 
         localStorage.setItem('terminalLockout', Date.now() + lockoutMs);
         enforceLockout(lockoutMs);
+    }
+
+    // --- TRANSITION LOGIC ---
+    function executeTransition() {
+        document.getElementById('terminal-container').style.display = 'none';
+        document.getElementById('transition-screen').style.display = 'flex';
+        
+        let progress = 0;
+        let bar = document.getElementById('progress-bar');
+        let text = document.getElementById('transition-text');
+        
+        // Data processing sound loop
+        let decryptSound = setInterval(() => {
+            playTone(300 + Math.random() * 500, 'square', 0.03, 0.02);
+        }, 80);
+
+        let loadInterval = setInterval(() => {
+            progress += Math.random() * 12; // Fills randomly like real processing
+            if (progress >= 100) {
+                progress = 100;
+                clearInterval(loadInterval);
+                clearInterval(decryptSound);
+                sfxSuccess(); // Final ding
+                
+                text.innerText = "DECRYPTION COMPLETE. OPENING FILE...";
+                
+                setTimeout(() => {
+                    document.getElementById('transition-screen').style.display = 'none';
+                    document.getElementById('document-container').style.display = 'block';
+                }, 1200);
+            }
+            bar.style.width = progress + "%";
+        }, 200);
     }
 
     // --- GAME ENGINE ---
@@ -697,10 +792,8 @@
             addLog("> EXACT MATCH!");
             addLog("> ACCESS GRANTED.");
             
-            setTimeout(() => { 
-                document.getElementById('terminal-container').style.display = 'none';
-                document.getElementById('document-container').style.display = 'block';
-            }, 1500);
+            // Trigger the new transition screen
+            setTimeout(executeTransition, 1000);
             return;
         }
 
@@ -754,10 +847,8 @@
             addLog("> OVERRIDE ACCEPTED.");
             addLog("> ACCESS GRANTED.");
             
-            setTimeout(() => { 
-                document.getElementById('terminal-container').style.display = 'none';
-                document.getElementById('document-container').style.display = 'block';
-            }, 1000);
+            // Trigger the new transition screen
+            setTimeout(executeTransition, 800);
         } else if (pw) {
             sfxError();
             addLog("> OVERRIDE DENIED.");
