@@ -9,6 +9,10 @@
     <meta property="og:color" content="#dc143c">
     
     <title>TERMINAL ACCESS RESTRICTED</title>
+    
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-database-compat.js"></script>
+
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -19,12 +23,12 @@
 
         body, html {
             margin: 0; 
-            padding: 0;
+            padding: 0; 
             background-color: var(--bg-color);
-            color: var(--terminal-color);
+            color: var(--terminal-color); 
             font-family: 'VT323', 'Fixedsys', monospace;
             height: 100%; 
-            overflow: hidden;
+            overflow: hidden; 
             text-transform: uppercase; 
             user-select: none;
         }
@@ -33,11 +37,8 @@
         body::before { 
             content: " "; 
             display: block; 
-            position: absolute;
-            top: 0; 
-            left: 0; 
-            bottom: 0; 
-            right: 0;
+            position: absolute; 
+            top: 0; left: 0; bottom: 0; right: 0;
             background: radial-gradient(circle, rgba(0,0,0,0) 50%, rgba(0,0,0,0.6) 100%);
             z-index: 100; 
             pointer-events: none;
@@ -46,15 +47,12 @@
         body::after { 
             content: " "; 
             display: block; 
-            position: absolute;
-            top: 0; 
-            left: 0; 
-            bottom: 0; 
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), 
-                        linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            position: absolute; 
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.4) 50%), 
+                        linear-gradient(90deg, rgba(255, 0, 0, 0.08), rgba(0, 255, 0, 0.04), rgba(0, 0, 255, 0.08));
             z-index: 99; 
-            background-size: 100% 3px, 3px 100%;
+            background-size: 100% 3px, 3px 100%; 
             pointer-events: none;
             animation: scanlineScroll 15s linear infinite;
         }
@@ -64,23 +62,41 @@
             100% { background-position: 0 100vh; } 
         }
 
-        #master-wrapper {
+        #master-wrapper { 
             width: 100%; 
             height: 100%; 
             position: relative; 
-            z-index: 3;
-            animation: crtJitter 5s infinite; 
+            z-index: 3; 
+            animation: crtJitter 7s infinite, severeGlitch 45s infinite; 
         }
 
         @keyframes crtJitter {
             0%, 10% { transform: translate(0,0); }
-            10.5% { transform: translate(-1px, 1px); }
-            11% { transform: translate(1px, -1px); }
+            10.5% { transform: translate(-0.5px, 0.5px); }
+            11% { transform: translate(0.5px, -0.5px); }
             11.5% { transform: translate(0,0); }
             100% { transform: translate(0,0); }
         }
 
+        @keyframes severeGlitch {
+            0%, 96% { transform: skewX(0deg); filter: none; }
+            96.5% { transform: skewX(2deg); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 blue); }
+            97% { transform: skewX(-2deg); filter: none; }
+            97.5% { transform: skewX(1deg); filter: drop-shadow(2px 0 red) drop-shadow(-2px 0 blue); }
+            98% { transform: skewX(0deg); filter: none; }
+            100% { transform: skewX(0deg); filter: none; }
+        }
+
         /* --- UI ELEMENTS --- */
+        #sys-info { 
+            position: absolute; 
+            top: 1rem; 
+            left: 2rem; 
+            z-index: 11; 
+            font-size: 1.1rem; 
+            text-shadow: 0 0 5px var(--terminal-color); 
+        }
+
         #theme-selector { 
             position: absolute; 
             top: 1rem; 
@@ -104,7 +120,7 @@
             background: var(--terminal-color); 
             color: var(--bg-color); 
         }
-
+        
         #music-player { 
             position: absolute; 
             bottom: 2rem; 
@@ -156,8 +172,8 @@
             cursor: pointer; 
         }
 
-        /* --- PRE-BOOT SCREEN --- */
-        #pre-boot { 
+        /* --- AUTHENTICATION SCREEN --- */
+        #auth-screen { 
             display: flex; 
             position: absolute; 
             top: 0; 
@@ -168,12 +184,113 @@
             background: var(--bg-color); 
             justify-content: center; 
             align-items: center; 
+            flex-direction: column; 
+            text-shadow: 0 0 5px var(--terminal-color); 
+            font-size: 1.5rem; 
+        }
+
+        .auth-box { 
+            border: 2px solid var(--terminal-color); 
+            padding: 2rem; 
+            width: 400px; 
+            background: rgba(0,0,0,0.8); 
+        }
+
+        .auth-input { 
+            width: 100%; 
+            background: transparent; 
+            border: none; 
+            border-bottom: 1px solid var(--terminal-color); 
+            color: var(--terminal-color); 
+            font-family: 'VT323', monospace; 
+            font-size: 1.5rem; 
+            text-transform: uppercase; 
+            margin-bottom: 1.5rem; 
+            outline: none; 
+        }
+
+        .auth-btn { 
+            width: 100%; 
+            background: var(--terminal-color); 
+            color: var(--bg-color); 
+            border: none; 
+            font-family: 'VT323', monospace; 
+            font-size: 1.5rem; 
+            cursor: pointer; 
+            padding: 10px; 
+            text-transform: uppercase; 
+            margin-top: 10px; 
+        }
+
+        .auth-btn:hover { 
+            background: transparent; 
+            color: var(--terminal-color); 
+            border: 1px solid var(--terminal-color); 
+        }
+
+        /* --- SCOREBOARD & ADMIN MODALS --- */
+        .modal { 
+            display: none; 
+            position: absolute; 
+            top: 10%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            width: 80%; 
+            max-width: 800px; 
+            max-height: 80vh; 
+            background: var(--bg-color); 
+            border: 2px solid var(--terminal-color); 
+            z-index: 60; 
+            padding: 2rem; 
+            overflow-y: auto; 
+            text-shadow: 0 0 5px var(--terminal-color); 
+        }
+
+        .modal-close { 
+            position: absolute; 
+            top: 10px; 
+            right: 20px; 
             cursor: pointer; 
             font-size: 1.5rem; 
-            text-shadow: 0 0 5px var(--terminal-color); 
-            animation: pulse 2s infinite; 
         }
-        
+
+        table.score-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            margin-top: 1rem; 
+        }
+
+        table.score-table th, table.score-table td { 
+            border: 1px solid var(--terminal-color); 
+            padding: 8px; 
+            text-align: left; 
+        }
+
+        .admin-del-btn { 
+            background: #dc143c; 
+            color: white; 
+            border: none; 
+            cursor: pointer; 
+            font-family: inherit; 
+            font-size: 1rem; 
+        }
+
+        /* --- PRE-BOOT SCREEN --- */
+        #pre-boot { 
+            display: none; 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 40; 
+            background: var(--bg-color); 
+            justify-content: center; 
+            align-items: center; 
+            font-size: 1.5rem; 
+            text-shadow: 0 0 5px var(--terminal-color); 
+        }
+
         #boot-sequence { 
             display: none; 
             padding: 2rem; 
@@ -192,6 +309,7 @@
             margin: 0 auto; 
             text-shadow: 0 0 5px var(--terminal-color); 
             font-size: 1.3rem; 
+            margin-top: 30px;
         }
 
         .header { 
@@ -228,6 +346,15 @@
         .dud { 
             opacity: 0.5; 
             pointer-events: none; 
+        }
+
+        .hex-egg { 
+            cursor: pointer; 
+        }
+
+        .hex-egg:hover { 
+            background-color: var(--terminal-color); 
+            color: var(--bg-color); 
         }
 
         #output-log { 
@@ -370,7 +497,7 @@
             font-weight: bold; 
         }
 
-        /* Interactive Elements & Alerts */
+        /* Formatting */
         .addendum-box { 
             border: 2px dashed var(--terminal-color); 
             padding: 15px; 
@@ -394,6 +521,7 @@
             margin: 15px 0; 
         }
         
+        /* Interactive Redactions */
         .redact-block { 
             cursor: pointer; 
             color: var(--terminal-color); 
@@ -425,7 +553,7 @@
             width: 100%; 
             height: 100%; 
             background-color: var(--bg-color); 
-            z-index: 20; 
+            z-index: 70; 
             justify-content: center; 
             align-items: center; 
             flex-direction: column; 
@@ -447,7 +575,13 @@
 
 <div id="master-wrapper">
     
+    <div id="sys-info">
+        SYSTEM TIME: <span id="clock-display"></span><br>
+        UPLINK IP: <span id="ip-display"></span>
+    </div>
+
     <div id="theme-selector">
+        <button class="theme-btn" onclick="openScoreboard(); sfxClick();">SCOREBOARD</button>
         <button class="theme-btn" onclick="setTheme('#1ae23b'); sfxClick();">ROBCO</button>
         <button class="theme-btn" onclick="setTheme('#dc143c'); sfxClick();">LOCKDOWN</button>
         <button class="theme-btn" onclick="setTheme('#0078d7'); sfxClick();">BOS</button>
@@ -463,8 +597,50 @@
         </div>
     </div>
 
-    <div id="pre-boot" onclick="initiateBootSequence()">
-        > PRESS ANY KEY OR CLICK TO INITIATE BOOT SEQUENCE_
+    <div id="auth-screen">
+        <div class="auth-box">
+            <div style="text-align: center; margin-bottom: 2rem;">ROBCO TERMINAL LOGIN</div>
+            <div>USERNAME:</div>
+            <input type="text" id="auth-user" class="auth-input" autocomplete="off" maxlength="15">
+            <div>PASSWORD:</div>
+            <input type="password" id="auth-pass" class="auth-input">
+            <button class="auth-btn" onclick="handleLogin()">AUTHENTICATE</button>
+            <div id="auth-err" style="color: #dc143c; margin-top: 10px; font-size: 1rem; text-align: center;"></div>
+        </div>
+    </div>
+
+    <div id="scoreboard-modal" class="modal">
+        <div class="modal-close" onclick="document.getElementById('scoreboard-modal').style.display='none'">[X]</div>
+        <h2>GLOBAL SCOREBOARD</h2>
+        <table class="score-table">
+            <thead>
+                <tr>
+                    <th>USER</th>
+                    <th>BEST TIME (S)</th>
+                    <th>LOCKOUTS</th>
+                    <th>DUDS USED</th>
+                </tr>
+            </thead>
+            <tbody id="scoreboard-body"></tbody>
+        </table>
+    </div>
+
+    <div id="admin-modal" class="modal">
+        <div class="modal-close" onclick="document.getElementById('admin-modal').style.display='none'">[X]</div>
+        <h2 style="color: #dc143c;">ADMINISTRATIVE CONTROLS</h2>
+        <table class="score-table">
+            <thead>
+                <tr>
+                    <th>USER</th>
+                    <th>ACTION</th>
+                </tr>
+            </thead>
+            <tbody id="admin-body"></tbody>
+        </table>
+    </div>
+
+    <div id="pre-boot">
+        <span class="alert-text">INITIALIZING OS... PLEASE WAIT.</span>
     </div>
 
     <div id="boot-sequence"></div>
@@ -485,7 +661,8 @@
         <div class="header">
             ROBCO INDUSTRIES UNIFIED OPERATING SYSTEM<br>
             COPYRIGHT 2075-2077 ROBCO INDUSTRIES<br>
-            <span onclick="adminBypass()" style="cursor: default;">-Server 1-</span><br><br>
+            <span onclick="adminBypass()" style="cursor: default;">-Server 1-</span><br>
+            ACTIVE USER: <span id="display-username"></span><br><br>
             Protocol Override: VERY HARD<br>
             Enter Password Now
         </div>
@@ -633,6 +810,21 @@
 </div>
 
 <script>
+    // --- FIREBASE SETUP ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyDmUZ5mw9QPZFjlgujcJF8lK0Hg5lxeDKg",
+        authDomain: "terminal-cracker-v2077.firebaseapp.com",
+        databaseURL: "https://terminal-cracker-v2077-default-rtdb.firebaseio.com",
+        projectId: "terminal-cracker-v2077",
+        storageBucket: "terminal-cracker-v2077.firebasestorage.app",
+        messagingSenderId: "772662562385",
+        appId: "1:772662562385:web:ce27ffa901d0413b94b270"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
     // --- TRACK LIST CONFIGURATION ---
     const TRACK_LIST = [
         "STARSET - SOMETHING WICKED.mp3",
@@ -640,16 +832,15 @@
         "STARSET - ECHO.mp3"
     ];
 
-    // Password pool and terminal constraints
-    const wordPool = [
-        "BROTHERHOODS", "PRESERVATION", "CONSERVATION", "TRANSMISSION", "ASSIMILATION", 
-        "CATASTROPHIC", "TECHNOLOGIES", "CIVILIZATION", "ANNIHILATION", "REGENERATION", 
-        "ILLUMINATING", "PURIFICATION", "CONSTRUCTION", "MODIFICATION", "PACIFICATION", 
-        "INDEPENDENCE", "APPRECIATION", "INTERFERENCE", "OVERWHELMING", "RADIOLOGICAL"
-    ];
-    
+    const wordPool = ["BROTHERHOODS", "PRESERVATION", "CONSERVATION", "TRANSMISSION", "ASSIMILATION", "CATASTROPHIC", "TECHNOLOGIES", "CIVILIZATION", "ANNIHILATION", "REGENERATION", "ILLUMINATING", "PURIFICATION", "CONSTRUCTION", "MODIFICATION", "PACIFICATION", "INDEPENDENCE", "APPRECIATION", "INTERFERENCE", "OVERWHELMING", "RADIOLOGICAL"];
     const GIBBERISH_CHARS = "!@#$%^&*()_+-=[]{}|;':\",./<>?";
     const BRACKET_PAIRS = { '(': ')', '[': ']', '{': '}', '<': '>' };
+    const EASTER_EGG_LORE = [
+        "Elder Ilyinishna requested more fusion cores for the primary generator.",
+        "Scribe notation: Local raider activity increased by 14% this quarter.",
+        "Aspirant assignment delayed due to logistical supply constraints.",
+        "Camp Rome perimeter defenses require immediate recalibration."
+    ];
     
     // Application State Variables
     let attempts = 4; 
@@ -657,25 +848,29 @@
     let password = ""; 
     let wordsOnBoard = []; 
     let lockoutInterval;
+    let currentUser = ""; 
+    let runStartTime = 0; 
+    let dudsUsed = 0; 
+    let loreIndices = [];
+
+    // System Information Intervals
+    setInterval(() => {
+        const now = new Date();
+        document.getElementById('clock-display').innerText = now.toLocaleTimeString('en-US', { hour12: false }) + " CST";
+    }, 1000);
+    document.getElementById('ip-display').innerText = "192.168." + Math.floor(Math.random()*255) + "." + Math.floor(Math.random()*255);
 
     // --- AUDIO & MUSIC ENGINE ---
     let audioCtx; 
     let audioInitialized = false; 
     let currentTrackIdx = 0;
-    
     const bgMusic = document.getElementById('bg-music');
 
-    /**
-     * Formats the MP3 filename for the UI display.
-     */
-    function formatSongName(filename) { 
+    window.formatSongName = function(filename) { 
         return filename.replace('.mp3', '').replace(/_/g, ' ').toUpperCase(); 
     }
 
-    /**
-     * Loads the specified track index into the audio element.
-     */
-    function loadTrack(index) {
+    window.loadTrack = function(index) {
         bgMusic.src = TRACK_LIST[index];
         document.getElementById('song-title').innerText = "PLAYING: " + formatSongName(TRACK_LIST[index]);
         if (audioInitialized) { 
@@ -684,10 +879,7 @@
         }
     }
 
-    /**
-     * Toggles playback state of the current track.
-     */
-    function togglePlay() {
+    window.togglePlay = function() {
         sfxClick();
         if (bgMusic.paused) { 
             bgMusic.play(); 
@@ -698,91 +890,175 @@
         }
     }
 
-    /**
-     * Advances to the next track in the playlist array.
-     */
-    function skipTrack() { 
+    window.skipTrack = function() { 
         sfxClick(); 
         currentTrackIdx = (currentTrackIdx + 1) % TRACK_LIST.length; 
         loadTrack(currentTrackIdx); 
     }
 
-    /**
-     * Adjusts the volume of the background music.
-     */
-    function changeVolume(val) { 
+    window.changeVolume = function(val) { 
         bgMusic.volume = val; 
     }
 
-    // Bind auto-skip functionality
     bgMusic.addEventListener('ended', skipTrack);
 
-    /**
-     * Synthesizes audio tones natively using the Web Audio API.
-     */
-    function playTone(freq, type, duration, vol) {
+    window.playTone = function(freq, type, duration, vol) {
         if (!audioCtx) return;
-        
         const osc = audioCtx.createOscillator(); 
         const gainNode = audioCtx.createGain();
-        
         osc.type = type; 
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
         gainNode.gain.setValueAtTime(vol, audioCtx.currentTime); 
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        
         osc.connect(gainNode); 
         gainNode.connect(audioCtx.destination); 
-        
         osc.start(); 
         osc.stop(audioCtx.currentTime + duration);
     }
 
-    // Contextual Sound Effects
-    function sfxHover() { playTone(1200, 'square', 0.05, 0.01); }  
-    function sfxClick() { playTone(800, 'square', 0.1, 0.05); }    
-    function sfxError() { playTone(150, 'sawtooth', 0.4, 0.1); }   
-    
-    function sfxSuccess() { 
+    window.sfxHover = function() { playTone(1200, 'square', 0.05, 0.01); }  
+    window.sfxClick = function() { playTone(800, 'square', 0.1, 0.05); }    
+    window.sfxError = function() { playTone(150, 'sawtooth', 0.4, 0.1); }   
+    window.sfxSuccess = function() { 
         playTone(400, 'sine', 0.1, 0.1); 
         setTimeout(() => playTone(600, 'sine', 0.1, 0.1), 100); 
         setTimeout(() => playTone(800, 'sine', 0.3, 0.1), 200); 
     }
 
-    // --- INTERACTIVE REDACTIONS ---
-    /**
-     * Removes the redaction overlay to reveal hidden elements.
-     */
-    window.revealRedact = function(el) {
-        sfxClick();
-        el.style.display = 'none'; 
+    function startHardwareHum() {
+        if (!audioCtx) return;
+        let humOsc = audioCtx.createOscillator(); 
+        let humGain = audioCtx.createGain();
+        humOsc.type = 'triangle'; 
+        humOsc.frequency.setValueAtTime(55, audioCtx.currentTime);
+        humGain.gain.setValueAtTime(0.015, audioCtx.currentTime);
+        humOsc.connect(humGain); 
+        humGain.connect(audioCtx.destination); 
+        humOsc.start();
         
+        setInterval(() => { 
+            if (Math.random() > 0.8) { 
+                playTone(1500 + Math.random()*2000, 'square', 0.02, 0.01); 
+            } 
+        }, 400);
+    }
+
+    // --- AUTHENTICATION & FIREBASE STORAGE ---
+    window.handleLogin = function() {
+        const u = document.getElementById('auth-user').value.trim().toUpperCase();
+        const p = document.getElementById('auth-pass').value;
+        const err = document.getElementById('auth-err');
+
+        if (u.length < 3 || p.length < 3) { 
+            err.innerText = "CREDENTIALS MUST BE > 3 CHARS"; 
+            return; 
+        }
+
+        const userRef = database.ref('terminalUsers/' + u);
+        
+        userRef.once('value').then((snapshot) => {
+            if (snapshot.exists()) {
+                const userData = snapshot.val();
+                if (userData.pass === p) {
+                    executeLoginSuccess(u);
+                } else {
+                    err.innerText = "INVALID PASSWORD FOR USER";
+                }
+            } else {
+                userRef.set({
+                    pass: p, bestTime: 999999, lockouts: 0, dudsUsedBest: 999
+                }).then(() => {
+                    executeLoginSuccess(u);
+                });
+            }
+        });
+    }
+
+    function executeLoginSuccess(u) {
+        currentUser = u;
+        document.getElementById('display-username').innerText = u;
+        document.getElementById('auth-screen').style.display = 'none';
+        document.getElementById('pre-boot').style.display = 'flex';
+        initiateBootSequence();
+    }
+
+    function saveRunMetrics() {
+        if (!currentUser) return;
+        let runTime = Math.floor((Date.now() - runStartTime) / 1000); 
+        
+        const userRef = database.ref('terminalUsers/' + currentUser);
+        userRef.once('value').then((snapshot) => {
+            const profile = snapshot.val();
+            if (runTime < profile.bestTime || profile.bestTime === 999999) {
+                userRef.update({
+                    bestTime: runTime,
+                    dudsUsedBest: dudsUsed
+                });
+            }
+        });
+    }
+
+    function recordLockout() {
+        if (!currentUser) return;
+        const userRef = database.ref('terminalUsers/' + currentUser);
+        userRef.once('value').then((snapshot) => {
+            const profile = snapshot.val();
+            userRef.update({ lockouts: profile.lockouts + 1 });
+        });
+    }
+
+    // --- SCOREBOARD LOGIC (Live Updating) ---
+    window.openScoreboard = function() {
+        document.getElementById('scoreboard-modal').style.display = 'block';
+    }
+
+    database.ref('terminalUsers').on('value', (snapshot) => {
+        let db = snapshot.val() || {};
+        let arr = [];
+        for (let user in db) {
+            arr.push({ name: user, time: db[user].bestTime, lockouts: db[user].lockouts, duds: db[user].dudsUsedBest });
+        }
+        
+        arr.sort((a, b) => a.time - b.time || a.lockouts - b.lockouts || a.duds - b.duds);
+
+        let html = "";
+        arr.forEach(entry => {
+            let tDisplay = entry.time === 999999 ? "N/A" : entry.time;
+            let dDisplay = entry.duds === 999 ? "N/A" : entry.duds;
+            html += `<tr><td>${entry.name}</td><td>${tDisplay}</td><td>${entry.lockouts}</td><td>${dDisplay}</td></tr>`;
+        });
+        document.getElementById('scoreboard-body').innerHTML = html;
+        
+        let adminHtml = "";
+        for (let user in db) {
+            adminHtml += `<tr><td>${user}</td><td><button class="admin-del-btn" onclick="deleteUser('${user}')">PURGE</button></td></tr>`;
+        }
+        document.getElementById('admin-body').innerHTML = adminHtml;
+    });
+
+    // --- INTERACTIVE REDACTIONS ---
+    window.revealRedact = function(el) {
+        sfxClick(); 
+        el.style.display = 'none'; 
         let hiddenContent = el.nextElementSibling;
-        hiddenContent.classList.remove('redact-hidden');
+        hiddenContent.classList.remove('redact-hidden'); 
         hiddenContent.classList.add('redact-revealed');
     }
 
     // --- BOOT SEQUENCE LOGIC ---
-    /**
-     * Initializes the audio context and begins the visual boot routine.
-     */
-    function initiateBootSequence() {
+    window.initiateBootSequence = function() {
         if (audioInitialized) return;
         
-        // Audio Context Initialization
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        if (audioCtx.state === 'suspended') {
-            audioCtx.resume();
-        }
+        if (audioCtx.state === 'suspended') { audioCtx.resume(); }
         
         bgMusic.volume = document.getElementById('volume-slider').value; 
         bgMusic.play().then(() => { 
             document.getElementById('play-pause-btn').innerText = "PAUSE"; 
-        }).catch(e => {
-            console.log("Audio playback was blocked by browser configuration.");
-        });
+        }).catch(e => console.log("Audio blocked."));
         
-        audioInitialized = true;
+        audioInitialized = true; 
+        startHardwareHum();
 
         document.getElementById('pre-boot').style.display = 'none';
         const bootDiv = document.getElementById('boot-sequence');
@@ -799,8 +1075,6 @@
         ];
 
         let lineIdx = 0;
-        
-        // Iterative printing of the boot process
         function printBootLine() {
             if (lineIdx < bootLines.length) {
                 bootDiv.innerHTML += bootLines[lineIdx] + "<br>";
@@ -811,89 +1085,57 @@
                 setTimeout(() => {
                     bootDiv.style.display = 'none';
                     document.getElementById('terminal-container').style.display = 'block';
+                    runStartTime = Date.now(); 
                 }, 800);
             }
         }
-        
         printBootLine();
     }
 
-    /**
-     * Modifies the global CSS variable for faction themes.
-     */
-    function setTheme(hex) { 
+    window.setTheme = function(hex) { 
         document.documentElement.style.setProperty('--terminal-color', hex); 
     }
 
     // --- LOCKOUT LOGIC ---
-    /**
-     * Evaluates local storage to determine if the user is currently penalized.
-     */
-    function checkLockout() {
-        const lockoutTime = localStorage.getItem('terminalLockout');
-        if (lockoutTime) {
-            const timeRemaining = parseInt(lockoutTime) - Date.now();
-            if (timeRemaining > 0) { 
-                enforceLockout(timeRemaining); 
-                return true; 
-            } else { 
-                localStorage.removeItem('terminalLockout'); 
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Executes the lockout screen display and manages the countdown timer interval.
-     */
     function enforceLockout(msLeft) {
+        document.getElementById('auth-screen').style.display = 'none';
         document.getElementById('terminal-container').style.display = 'none';
         document.getElementById('document-container').style.display = 'none';
         document.getElementById('transition-screen').style.display = 'none';
         document.getElementById('pre-boot').style.display = 'none';
         document.getElementById('lockout-screen').style.display = 'flex';
         
+        let endTime = Date.now() + msLeft;
         clearInterval(lockoutInterval);
-        
         lockoutInterval = setInterval(() => {
-            const left = parseInt(localStorage.getItem('terminalLockout')) - Date.now();
-            
+            let left = endTime - Date.now();
             if (left <= 0) { 
                 clearInterval(lockoutInterval); 
-                localStorage.removeItem('terminalLockout'); 
                 location.reload(); 
             } else {
-                const mins = Math.floor(left / 60000); 
-                const secs = Math.floor((left % 60000) / 1000).toString().padStart(2, '0');
+                let mins = Math.floor(left / 60000); 
+                let secs = Math.floor((left % 60000) / 1000).toString().padStart(2, '0');
                 document.getElementById('lockout-timer').innerText = `TIMEOUT: ${mins}:${secs}`;
             }
         }, 1000);
     }
 
-    /**
-     * Configures the lockout parameters upon reaching zero attempts.
-     */
     function triggerFailLockout() {
-        const lockoutMs = 5 * 60 * 1000; 
-        localStorage.setItem('terminalLockout', Date.now() + lockoutMs);
-        enforceLockout(lockoutMs);
+        recordLockout(); 
+        enforceLockout(5 * 60 * 1000);
     }
 
     // --- TRANSITION AND TYPEWRITER LOGIC ---
-    /**
-     * Incrementally reveals the document elements to simulate data reception.
-     */
     function typeDocument() {
         const doc = document.getElementById('document-container');
         doc.style.display = 'block';
         
-        // Obscure all immediate children prior to iteration
         const elements = Array.from(doc.children);
         elements.forEach(el => el.style.display = 'none');
         
-        let i = 0;
+        let i = 0; 
         let printSound = setInterval(() => { 
-            playTone(600 + Math.random() * 200, 'square', 0.02, 0.02); 
+            playTone(600 + Math.random()*200, 'square', 0.02, 0.02); 
         }, 50);
 
         function showNext() {
@@ -901,37 +1143,28 @@
                 clearInterval(printSound); 
                 return; 
             }
-            
             elements[i].style.display = ''; 
             i++;
-            
-            // Adjust scroll position to active content
             doc.scrollTop = doc.scrollHeight; 
-            
             setTimeout(showNext, 150); 
         }
-        
         showNext();
     }
 
-    /**
-     * Manages the visual transition phase between authentication and document parsing.
-     */
     function executeTransition() {
+        saveRunMetrics(); 
         document.getElementById('terminal-container').style.display = 'none';
         document.getElementById('transition-screen').style.display = 'flex';
         
         let progress = 0; 
         let bar = document.getElementById('progress-bar'); 
         let text = document.getElementById('transition-text');
-        
         let decryptSound = setInterval(() => { 
             playTone(300 + Math.random() * 500, 'square', 0.03, 0.02); 
         }, 80);
 
         let loadInterval = setInterval(() => {
             progress += Math.random() * 12; 
-            
             if (progress >= 100) {
                 progress = 100; 
                 clearInterval(loadInterval); 
@@ -939,53 +1172,45 @@
                 sfxSuccess(); 
                 
                 text.innerText = "DECRYPTION COMPLETE. OPENING FILE...";
-                
-                setTimeout(() => {
-                    document.getElementById('transition-screen').style.display = 'none';
+                setTimeout(() => { 
+                    document.getElementById('transition-screen').style.display = 'none'; 
                     typeDocument(); 
                 }, 1200);
             }
-            
             bar.style.width = progress + "%";
-            
         }, 200);
     }
 
     // --- GAME ENGINE ---
-    /**
-     * Renders the remaining visual attempt indicators in the UI.
-     */
     function updateAttempts() {
         let blocks = ""; 
-        for(let i=0; i < attempts; i++) {
+        for(let i=0; i<attempts; i++) {
             blocks += "&#9608; ";
         }
         document.getElementById('attempts-display').innerHTML = `${attempts} ATTEMPT(S) LEFT: ${blocks}`;
     }
 
-    /**
-     * Pushes log entries into the bottom readout and manages string truncation.
-     */
     function addLog(text) {
         logs.push(text); 
         if (logs.length > 5) {
             logs.shift();
         }
-        
         const logHtml = logs.map(l => `<div class="log-entry">${l}</div>`).join('');
         document.getElementById('output-log').innerHTML = logHtml;
     }
 
-    /**
-     * Scaffolds the game board structure with valid strings and randomized interference.
-     */
+    window.triggerEasterEgg = function() {
+        sfxClick();
+        let lore = EASTER_EGG_LORE[Math.floor(Math.random() * EASTER_EGG_LORE.length)];
+        addLog("> MEMORY BLOCK ACCESSED:"); 
+        addLog(`> "${lore}"`);
+    }
+
     function generateBoard() {
         wordsOnBoard = wordPool.sort(() => 0.5 - Math.random()).slice(0, 15);
         password = wordsOnBoard[Math.floor(Math.random() * wordsOnBoard.length)];
-        
         let slots = new Array(544).fill(null);
         
-        // Word Insertion
         wordsOnBoard.forEach(word => {
             let placed = false;
             while(!placed) {
@@ -998,7 +1223,6 @@
                     for(let i=0; i<12; i++) { 
                         if(slots[idx + i] !== null) isFree = false; 
                     }
-                    
                     if(isFree) { 
                         for(let i=0; i<12; i++) {
                             slots[idx+i] = { type: 'word', char: word[i], wordId: word }; 
@@ -1009,19 +1233,17 @@
             }
         });
 
-        // Fill remaining empty array indices with noise
         for(let i=0; i<544; i++) { 
             if(slots[i] === null) { 
                 slots[i] = { type: 'gibberish', char: GIBBERISH_CHARS[Math.floor(Math.random() * GIBBERISH_CHARS.length)] }; 
             } 
         }
 
-        // Parenthetical Bracket Generation
         for(let line=0; line<34; line++) {
             let start = line * 16; 
             let gibberishStreak = [];
             
-            for(let i=start; i < start+16; i++) {
+            for(let i=start; i<start+16; i++) {
                 if(slots[i].type === 'gibberish') { 
                     gibberishStreak.push(i); 
                 } else { 
@@ -1035,19 +1257,16 @@
                 createBracket(slots, gibberishStreak);
             }
         }
-        
+
+        loreIndices = [Math.floor(Math.random() * 34), Math.floor(Math.random() * 34)];
         renderBoard(slots);
     }
 
-    /**
-     * Constructs actionable bracket pairs inside of contiguous gibberish streaks.
-     */
     function createBracket(slots, streakArr) {
         let bLen = Math.floor(Math.random() * (streakArr.length - 1)) + 2; 
         let openKeys = Object.keys(BRACKET_PAIRS); 
         let openChar = openKeys[Math.floor(Math.random() * openKeys.length)]; 
         let closeChar = BRACKET_PAIRS[openChar];
-        
         let startIdx = streakArr[0]; 
         let endIdx = streakArr[bLen - 1]; 
         let bracketId = 'b_' + Math.random().toString(36).substr(2, 9);
@@ -1057,18 +1276,15 @@
         slots[endIdx].char = closeChar; 
         slots[endIdx].bracketRole = 'close';
         
-        for(let i=startIdx; i <= endIdx; i++) { 
+        for(let i=startIdx; i<=endIdx; i++) { 
             slots[i].bracketId = bracketId; 
         }
     }
 
-    function escapeHTML(str) { 
+    window.escapeHTML = function(str) { 
         return str.replace(/</g, "&lt;").replace(/>/g, "&gt;"); 
     }
 
-    /**
-     * Parses the finalized slot array and constructs the HTML elements for presentation.
-     */
     function renderBoard(slots) {
         let col1 = document.getElementById('col1'); 
         let col2 = document.getElementById('col2'); 
@@ -1077,11 +1293,17 @@
         let activeBracket = null;
         
         for(let i=0; i<544; i++) {
+            let lineIndex = Math.floor(i / 16);
             if(i % 16 === 0) { 
                 if(i !== 0) currentHtml += "<br>"; 
-                currentHtml += "0x" + Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0') + " "; 
+                let hexStr = "0x" + Math.floor(Math.random() * 65535).toString(16).toUpperCase().padStart(4, '0');
+                if (loreIndices.includes(lineIndex)) { 
+                    currentHtml += `<span class="hex-egg" onclick="triggerEasterEgg()">${hexStr}</span> `; 
+                } else { 
+                    currentHtml += `${hexStr} `; 
+                }
             }
-            
+
             let slot = slots[i];
             
             if (slot.type === 'word') {
@@ -1119,12 +1341,8 @@
     }
 
     // --- INTERACTION LOGIC ---
-    /**
-     * Processes string comparison upon a user word selection and manipulates game state.
-     */
     window.guessWord = function(guess) {
         let likeness = 0; 
-        
         for(let i=0; i<12; i++) { 
             if(guess[i] === password[i]) likeness++; 
         }
@@ -1134,14 +1352,12 @@
             addLog(`> ${guess}`); 
             addLog("> EXACT MATCH!"); 
             addLog("> ACCESS GRANTED.");
-            
             setTimeout(executeTransition, 1000); 
             return;
         }
-        
+
         attempts--; 
         sfxError(); 
-        
         addLog(`> ${guess}`); 
         addLog(`> Entry denied.`); 
         addLog(`> Likeness=${likeness}`); 
@@ -1153,15 +1369,13 @@
         }
     }
 
-    /**
-     * Processes bracket interactions, handling attempt restoration or dud elimination.
-     */
     window.useBracket = function(el) {
         sfxClick();
         if(el.dataset.used === 'true') return; 
         
         el.dataset.used = 'true'; 
         el.style.pointerEvents = 'none';
+        dudsUsed++; 
         
         if(Math.random() < 0.20 && attempts < 4) { 
             attempts = 4; 
@@ -1182,10 +1396,7 @@
         }
     }
 
-    // --- ADMIN BYPASS ---
-    /**
-     * Triggered through hidden UI element; bypasses minigame requirements on correct input.
-     */
+    // --- ADMIN BYPASS & CONTROL PANEL ---
     window.adminBypass = function() {
         const pw = prompt("ADMINISTRATOR OVERRIDE REQUIRED.\nINPUT PASSWORD:");
         
@@ -1193,23 +1404,31 @@
             sfxSuccess(); 
             addLog("> OVERRIDE ACCEPTED."); 
             addLog("> ACCESS GRANTED.");
-            
             setTimeout(executeTransition, 800);
+        } else if (pw && pw.toLowerCase() === "parasite") {
+            sfxSuccess(); 
+            openAdminPanel();
         } else if (pw) { 
             sfxError(); 
             addLog("> OVERRIDE DENIED."); 
         }
     }
 
-    // Initialize Game Architecture
-    if (!checkLockout()) {
-        loadTrack(currentTrackIdx);
-        updateAttempts();
-        generateBoard();
-        addLog("> INITIALIZED...");
-    } else {
-        document.getElementById('pre-boot').style.display = 'none';
+    window.openAdminPanel = function() {
+        document.getElementById('admin-modal').style.display = 'block';
     }
+
+    window.deleteUser = function(userTarget) {
+        if (confirm(`WARNING: Are you sure you want to purge user [${userTarget}] from the mainframe?`)) {
+            database.ref('terminalUsers/' + userTarget).remove();
+        }
+    }
+
+    // Start App Initialization Call
+    loadTrack(currentTrackIdx);
+    updateAttempts();
+    generateBoard();
+
 </script>
 
 </body>
