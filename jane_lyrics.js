@@ -1,14 +1,14 @@
 // ==========================================
-// REALITY GLITCH LYRIC ENGINE
+// REALITY GLITCH LYRIC ENGINE (FIREBASE EDITION)
 // Track: JANE - THE LONG FACES (Shortened Cut)
 // ==========================================
 
-// --- MASTER TUNING (GLOBAL DEFAULTS) ---
-const TIMING_OFFSET = 1.2; 
-const DURATION_MULTIPLIER = 1.0; 
-const BLANK_SPACE_MS = 300; 
+// --- DEFAULT FALLBACK TUNING ---
+let TIMING_OFFSET = 1.2; 
+let DURATION_MULTIPLIER = 1.0; 
+let BLANK_SPACE_MS = 300; 
 
-// 1. Inject the Glitch CSS into the page automatically
+// 1. Inject the Glitch CSS
 const lyricStyle = document.createElement('style');
 lyricStyle.innerHTML = `
     .lyric-glitch {
@@ -22,7 +22,6 @@ lyricStyle.innerHTML = `
         pointer-events: none;
         z-index: 9999;
     }
-
     @keyframes textJitter {
         0%, 100% { transform: translate(0, 0) skewX(0deg); }
         25% { transform: translate(-2px, 1px) skewX(2deg); color: #fff; }
@@ -32,13 +31,8 @@ lyricStyle.innerHTML = `
 `;
 document.head.appendChild(lyricStyle);
 
-// 2. Lyric Timestamps & Per-Line Modifiers
-// Options you can add to any line:
-// - hold: 3000 (Forces this exact millisecond duration, ignores gaps/math)
-// - mult: 0.5  (Changes the duration multiplier just for this line)
-// - blank: 500 (Changes the blank space delay just for this line)
-
-const JANE_LYRICS = [
+// 2. Default Lyric Timestamps
+let JANE_LYRICS = [
     { t: 0.0, text: "Won't the devil take you back for more", mult: 1.6 },
     { t: 3.5, text: "To open closed doors", mult: 1.2 },
     { t: 6.5, text: "And keep the good from the great", mult: 1.3 },
@@ -56,12 +50,10 @@ const JANE_LYRICS = [
     { t: 42.5, text: "The poison makes a portrait of your" },
     { t: 45.0, text: "Face" },
     { t: 46.5, text: "In the mirror" },
-    
     // EXAMPLE: There is a 6-second instrumental gap after this lyric.
     // By adding "hold: 3000", it stays on screen for exactly 3 seconds, 
     // then disappears, leaving the screen completely normal for the last 3 seconds of the instrumental.
     { t: 48.0, text: "Smiling with fright", hold: 3000 }, 
-    
     { t: 54.0, text: "And Jane" },
     { t: 55.5, text: "You're early" },
     { t: 57.0, text: "Your life's work is dirtied by the" },
@@ -74,11 +66,34 @@ const JANE_LYRICS = [
     { t: 75.0, text: "It's only small change, red on the green, green grass", hold: 4000 }
 ];
 
-let currentLyricIndex = 0;
+// --- FIREBASE LIVE SYNC ---
+// Note: This relies on 'firebase' already being loaded in index.html
+const lyricsRef = firebase.database().ref('lyricEngine/jane');
+
+lyricsRef.on('value', (snapshot) => {
+    if (snapshot.exists()) {
+        // OVERWRITE local variables with Database values instantly
+        const data = snapshot.val();
+        TIMING_OFFSET = data.TIMING_OFFSET !== undefined ? data.TIMING_OFFSET : TIMING_OFFSET;
+        DURATION_MULTIPLIER = data.DURATION_MULTIPLIER !== undefined ? data.DURATION_MULTIPLIER : DURATION_MULTIPLIER;
+        BLANK_SPACE_MS = data.BLANK_SPACE_MS !== undefined ? data.BLANK_SPACE_MS : BLANK_SPACE_MS;
+        if (data.JANE_LYRICS) JANE_LYRICS = data.JANE_LYRICS;
+    } else {
+        // First boot! Auto-populate Firebase with the defaults
+        lyricsRef.set({
+            TIMING_OFFSET,
+            DURATION_MULTIPLIER,
+            BLANK_SPACE_MS,
+            JANE_LYRICS
+        });
+    }
+});
+
+
+let currentLyricIndex = -1;
 let activeGlitches = [];
 let glitchTimeout = null;
 
-// Clean up glitches to return the DOM to its normal state
 function clearGlitches() {
     activeGlitches.forEach(obj => {
         if (obj.el.hasAttribute('data-orig')) {
@@ -91,104 +106,80 @@ function clearGlitches() {
 
 // 3. The Hijack Function
 function triggerRealityGlitch(lyricObj, index) {
-    clearGlitches(); // wipe previous lyric
+    clearGlitches(); 
     if (glitchTimeout) clearTimeout(glitchTimeout);
 
     let lyricText = lyricObj.text;
     let displayTime;
 
-    // Determine the duration of the glitch
     if (lyricObj.hold) {
-        // Absolute override
         displayTime = lyricObj.hold;
     } else {
-        // Dynamic gap calculation
-        let gapMs = 4000; // Fallback for the very last lyric
-        
+        let gapMs = 4000; 
         if (index + 1 < JANE_LYRICS.length) {
             gapMs = (JANE_LYRICS[index + 1].t - lyricObj.t) * 1000;
         }
-
-        // Apply line-specific modifiers or fall back to globals
         let currentMult = lyricObj.mult !== undefined ? lyricObj.mult : DURATION_MULTIPLIER;
         let currentBlank = lyricObj.blank !== undefined ? lyricObj.blank : BLANK_SPACE_MS;
 
         displayTime = (gapMs * currentMult) - currentBlank;
-        
-        // Safety net so lyrics never flash so fast they break the browser
-        if (displayTime < 200) {
-            displayTime = 200; 
-        }
+        if (displayTime < 200) displayTime = 200; 
     }
 
     const terminalContainer = document.getElementById('terminal-container');
     const isMinigameActive = terminalContainer && getComputedStyle(terminalContainer).display !== 'none';
 
     if (isMinigameActive) {
-        // --- HACKING GAME: Sequential Word Replacement ---
         let wordsOnBoard = Array.from(document.querySelectorAll('.word'));
-        
         if (wordsOnBoard.length > 0) {
             let lyricWords = lyricText.split(' ');
-            
             lyricWords.forEach((word, wordIndex) => {
                 let el = wordsOnBoard[wordIndex % wordsOnBoard.length];
-                
-                if (!el.hasAttribute('data-orig')) {
-                    el.setAttribute('data-orig', el.innerHTML);
-                }
-                
+                if (!el.hasAttribute('data-orig')) { el.setAttribute('data-orig', el.innerHTML); }
                 el.innerHTML = `<span class="lyric-glitch">${word}</span>`;
-                
-                if (!activeGlitches.some(obj => obj.el === el)) {
-                    activeGlitches.push({ el: el });
-                }
+                if (!activeGlitches.some(obj => obj.el === el)) activeGlitches.push({ el: el });
             });
         }
     } else {
-        // --- CHARACTER APP & SCOREBOARD: Random Element Hijacking ---
         const safeSelectors = '#scoreboard-body td, #document-container p, #document-container th, #document-container td, .doc-section-title';
         let elements = Array.from(document.querySelectorAll(safeSelectors));
-
-        // Grab up to 5 random text blocks to overwrite
         elements = elements.sort(() => 0.5 - Math.random()).slice(0, 5); 
 
         elements.forEach(el => {
-            if (!el.hasAttribute('data-orig')) {
-                el.setAttribute('data-orig', el.innerHTML);
-            }
+            if (!el.hasAttribute('data-orig')) { el.setAttribute('data-orig', el.innerHTML); }
             el.innerHTML = `<span class="lyric-glitch">${lyricText}</span>`;
             activeGlitches.push({ el: el });
         });
     }
 
-    // Auto-revert reality
-    glitchTimeout = setTimeout(() => {
-        clearGlitches();
-    }, displayTime); 
+    glitchTimeout = setTimeout(() => { clearGlitches(); }, displayTime); 
 }
 
-// 4. Audio Synchronization Listener
+// 4. Time-Aware Audio Synchronization 
 document.addEventListener("DOMContentLoaded", () => {
     const musicEl = document.getElementById('bg-music');
     if (!musicEl) return;
 
-    // Reset index when a new song starts
-    musicEl.addEventListener('play', () => {
-        currentLyricIndex = 0;
-        clearGlitches();
-    });
+    musicEl.addEventListener('play', () => { clearGlitches(); });
 
     musicEl.addEventListener('timeupdate', () => {
         const src = decodeURIComponent(musicEl.src).toUpperCase();
-        
-        // Only run logic if JANE is playing
         if (!src.includes('JANE') && !src.includes('THE LONG FACES')) return;
 
-        // Check lyric sync against the master timing offset
-        if (currentLyricIndex < JANE_LYRICS.length && musicEl.currentTime >= (JANE_LYRICS[currentLyricIndex].t + TIMING_OFFSET)) {
+        // SCRUB-SAFE MATH: Recalculate where we should be on every tick
+        let targetIndex = -1;
+        for (let i = 0; i < JANE_LYRICS.length; i++) {
+            if (musicEl.currentTime >= (JANE_LYRICS[i].t + TIMING_OFFSET)) {
+                targetIndex = i;
+            } else {
+                break; // Stop checking once we find the future lyrics
+            }
+        }
+
+        // If we crossed into a new line (or scrubbed forward/backward), trigger it!
+        if (targetIndex !== -1 && targetIndex !== currentLyricIndex) {
+            currentLyricIndex = targetIndex;
             triggerRealityGlitch(JANE_LYRICS[currentLyricIndex], currentLyricIndex);
-            currentLyricIndex++;
         }
     });
 });
