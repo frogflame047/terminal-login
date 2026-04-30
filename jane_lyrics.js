@@ -39,13 +39,13 @@ document.head.appendChild(lyricStyle);
 // - blank: 500 (Changes the blank space delay just for this line)
 
 const JANE_LYRICS = [
-    { t: 0.0, text: "Won't the devil take you back for more" },
+    { t: 0.0, text: "Won't the devil take you back for more", mult: 1.2 },
     { t: 3.5, text: "To open closed doors" },
-    { t: 6.5, text: "And keep the good from the great" },
+    { t: 6.5, text: "And keep the good from the great", mult: 1.1 },
     { t: 10.0, text: "Evil in equal, seeking to kill and create" },
-    { t: 14.0, text: "How grand? The milk and honey land" },
+    { t: 14.0, text: "How grand? The milk and honey land", mult: 2.0 },
     { t: 17.5, text: "Is on her tongue again" },
-    { t: 20.5, text: "Taste of the violence, trying to silence her head" },
+    { t: 20.5, text: "Taste of the violence, trying to silence her head", mult: 1.9 },
     { t: 27.0, text: "And Jane" },
     { t: 28.5, text: "You're early" },
     { t: 30.0, text: "Your life's work is dirtied by the" },
