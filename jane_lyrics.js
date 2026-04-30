@@ -3,6 +3,16 @@
 // Track: JANE - THE LONG FACES (Shortened Cut)
 // ==========================================
 
+// --- MASTER TUNING ---
+// If lyrics appear too early, INCREASE this number (e.g., 1.5 adds a 1.5 second delay).
+// If lyrics appear too late, DECREASE it to a negative (e.g., -0.5 triggers them earlier).
+const TIMING_OFFSET = 1.2; 
+
+// How long the glitched words stay on screen (in milliseconds). 
+// 3000 = 3 seconds.
+const GLITCH_DURATION = 3000; 
+
+
 // 1. Inject the Glitch CSS into the page automatically
 const lyricStyle = document.createElement('style');
 lyricStyle.innerHTML = `
@@ -27,7 +37,7 @@ lyricStyle.innerHTML = `
 `;
 document.head.appendChild(lyricStyle);
 
-// 2. Lyric Timestamps (Shifted to start at 0:00)
+// 2. Lyric Timestamps (Base timings)
 const JANE_LYRICS = [
     { t: 0.0, text: "Won't the devil take you back for more" },
     { t: 3.5, text: "To open closed doors" },
@@ -91,17 +101,14 @@ function triggerRealityGlitch(lyricText) {
             let lyricWords = lyricText.split(' ');
             
             lyricWords.forEach((word, index) => {
-                // Loop back to the start if there are more lyric words than board words
                 let el = wordsOnBoard[index % wordsOnBoard.length];
                 
-                // Protect the original board word string so we don't accidentally save a glitch
                 if (!el.hasAttribute('data-orig')) {
                     el.setAttribute('data-orig', el.innerHTML);
                 }
                 
                 el.innerHTML = `<span class="lyric-glitch">${word}</span>`;
                 
-                // Track for cleanup
                 if (!activeGlitches.some(obj => obj.el === el)) {
                     activeGlitches.push({ el: el });
                 }
@@ -112,7 +119,6 @@ function triggerRealityGlitch(lyricText) {
         const safeSelectors = '#scoreboard-body td, #document-container p, #document-container th, #document-container td, .doc-section-title';
         let elements = Array.from(document.querySelectorAll(safeSelectors));
 
-        // Grab up to 5 random text blocks to overwrite
         elements = elements.sort(() => 0.5 - Math.random()).slice(0, 5); 
 
         elements.forEach(el => {
@@ -124,10 +130,10 @@ function triggerRealityGlitch(lyricText) {
         });
     }
 
-    // Auto-revert reality right before the next line normally kicks in
+    // Auto-revert reality using the global duration variable
     glitchTimeout = setTimeout(() => {
         clearGlitches();
-    }, 2500); 
+    }, GLITCH_DURATION); 
 }
 
 // 4. Audio Synchronization Listener
@@ -135,7 +141,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const musicEl = document.getElementById('bg-music');
     if (!musicEl) return;
 
-    // Reset sync logic if a track starts playing
+    // Reset index when a new song starts
     musicEl.addEventListener('play', () => {
         currentLyricIndex = 0;
         clearGlitches();
@@ -144,11 +150,11 @@ document.addEventListener("DOMContentLoaded", () => {
     musicEl.addEventListener('timeupdate', () => {
         const src = decodeURIComponent(musicEl.src).toUpperCase();
         
-        // ONLY execute the glitch logic if the specific Jane track is active
+        // Only run logic if JANE is playing
         if (!src.includes('JANE') && !src.includes('THE LONG FACES')) return;
 
-        // Check the current song timestamp against the script
-        if (currentLyricIndex < JANE_LYRICS.length && musicEl.currentTime >= JANE_LYRICS[currentLyricIndex].t) {
+        // Check lyric sync against the master timing offset
+        if (currentLyricIndex < JANE_LYRICS.length && musicEl.currentTime >= (JANE_LYRICS[currentLyricIndex].t + TIMING_OFFSET)) {
             triggerRealityGlitch(JANE_LYRICS[currentLyricIndex].text);
             currentLyricIndex++;
         }
